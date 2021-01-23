@@ -3,8 +3,10 @@ package com.github.krystian211.city.bus.route.search.engine.model;
 import javax.persistence.*;
 import java.time.LocalTime;
 import java.util.Set;
+import java.util.TreeSet;
 
-@Entity(name = "tTimetable")
+@Entity(name = "timetable")
+@Table(name = "tTimetable")
 public class Timetable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -12,17 +14,20 @@ public class Timetable {
     @ManyToOne(fetch = FetchType.EAGER)
     private BusRoute busRoute;
     @ManyToOne(fetch = FetchType.EAGER)
-    private BusStop actualBusStop;
+    private BusStop parentBusStop;
     @ManyToOne(fetch = FetchType.EAGER)
     private BusStop direction;
-    private Set<LocalTime> weekdaysArrivalTimes;
-    private Set<LocalTime> saturdayArrivalTimes;
-    private Set<LocalTime> sundayAndHolidaysArrivalTimes;
+    @ElementCollection
+    private Set<LocalTime> weekdaysArrivalTimes=new TreeSet<>();
+    @ElementCollection
+    private Set<LocalTime> saturdayArrivalTimes=new TreeSet<>();
+    @ElementCollection
+    private Set<LocalTime> sundayAndHolidaysArrivalTimes=new TreeSet<>();
 
-    public Timetable(int id, BusRoute busRoute, BusStop actualBusStop, BusStop direction) {
+    public Timetable(int id, BusRoute busRoute, BusStop parentBusStop, BusStop direction) {
         this.id = id;
         this.busRoute = busRoute;
-        this.actualBusStop = actualBusStop;
+        this.parentBusStop = parentBusStop;
         this.direction = direction;
     }
 
@@ -45,12 +50,12 @@ public class Timetable {
         this.busRoute = busRoute;
     }
 
-    public BusStop getActualBusStop() {
-        return this.actualBusStop;
+    public BusStop getParentBusStop() {
+        return this.parentBusStop;
     }
 
-    public void setActualBusStop(BusStop actualBusStop) {
-        this.actualBusStop = actualBusStop;
+    public void setParentBusStop(BusStop parentBusStop) {
+        this.parentBusStop = parentBusStop;
     }
 
     public BusStop getDirection() {

@@ -1,19 +1,23 @@
 package com.github.krystian211.city.bus.route.search.engine.model;
 
 import javax.persistence.*;
-import java.util.LinkedHashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
-@Entity(name = "tBusRoute")
-public class BusRoute implements Comparable<BusRoute>{
+@Entity(name = "busRoute")
+@Table(name = "tBusRoute")
+public class BusRoute implements Comparable<BusRoute> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private int busRouteNumber;
-    @ManyToMany(fetch = FetchType.EAGER)
-    private Set<BusStop> firstDirectionBusStops=new LinkedHashSet<>();
-    @ManyToMany(fetch = FetchType.EAGER)
-    private Set<BusStop> oppositeDirectionBusStops=new LinkedHashSet<>();
+    @ManyToMany(fetch = FetchType.EAGER,
+            cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JoinTable(joinColumns = @JoinColumn(name = "busRouteId"),
+            inverseJoinColumns = @JoinColumn(name = "busStopId"))
+    private Map<Integer,BusStop> passedBusStops = new TreeMap<>();
 
     public BusRoute(int id, int busRouteNumber) {
         this.id = id;
@@ -39,20 +43,12 @@ public class BusRoute implements Comparable<BusRoute>{
         this.busRouteNumber = busRouteNumber;
     }
 
-    public Set<BusStop> getFirstDirectionBusStops() {
-        return this.firstDirectionBusStops;
+    public Map<Integer, BusStop> getPassedBusStops() {
+        return this.passedBusStops;
     }
 
-    public void setFirstDirectionBusStops(Set<BusStop> firstDirectionBusStops) {
-        this.firstDirectionBusStops = firstDirectionBusStops;
-    }
-
-    public Set<BusStop> getOppositeDirectionBusStops() {
-        return this.oppositeDirectionBusStops;
-    }
-
-    public void setOppositeDirectionBusStops(Set<BusStop> oppositeDirectionBusStops) {
-        this.oppositeDirectionBusStops = oppositeDirectionBusStops;
+    public void setPassedBusStops(Map<Integer, BusStop> passedBusStops) {
+        this.passedBusStops = passedBusStops;
     }
 
     @Override
