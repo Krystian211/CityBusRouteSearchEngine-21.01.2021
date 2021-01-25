@@ -63,4 +63,5 @@ public class Employee {
     public void setAdministrator(boolean administrator) {
         this.administrator = administrator;
     }
+
 }

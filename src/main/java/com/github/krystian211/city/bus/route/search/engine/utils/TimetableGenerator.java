@@ -4,7 +4,6 @@ import com.github.krystian211.city.bus.route.search.engine.dao.*;
 import com.github.krystian211.city.bus.route.search.engine.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import java.time.LocalTime;
 import java.util.*;
 
@@ -268,7 +267,7 @@ public class TimetableGenerator {
         for (int i = 0; i < busStopNamesList.size(); i++) {
             BusStop busStop = new BusStop();
             busStop.setId(i + 1);
-            busStop.setBusStopName(this.busStopNamesList.get(i));
+            busStop.setName(this.busStopNamesList.get(i));
             for (Street street : this.busStopStreetsList.get(i)) {
                 busStop.getStreets().add(street);
             }
@@ -300,7 +299,7 @@ public class TimetableGenerator {
 
     private void listBusStops() {
         for (BusStop busStop : busStopList) {
-            System.out.println(busStop.getId() + " - " + busStop.getBusStopName());
+            System.out.println(busStop.getId() + " - " + busStop.getName());
         }
     }
 
@@ -330,7 +329,7 @@ public class TimetableGenerator {
     private BusRoute createBusRoute(int busRouteNumber) {
         BusRoute busRoute = new BusRoute();
         busRoute.setId(busRouteNumber);
-        busRoute.setBusRouteNumber(busRouteNumber);
+        busRoute.setNumber(busRouteNumber);
         int order = 0;
         for (BusStop busStop : this.passedBusStopsList.get(busRouteNumber - 1)) {
             busRoute.getPassedBusStops().put(order, busStop);

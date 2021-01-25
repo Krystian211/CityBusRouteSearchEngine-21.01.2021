@@ -1,6 +1,7 @@
 package com.github.krystian211.city.bus.route.search.engine.model;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity(name = "travelTime")
 @Table(name = "tTravelTime")
@@ -56,4 +57,5 @@ public class TravelTime {
     public void setTravelTime(Integer travelTime) {
         this.travelTime = travelTime;
     }
+
 }

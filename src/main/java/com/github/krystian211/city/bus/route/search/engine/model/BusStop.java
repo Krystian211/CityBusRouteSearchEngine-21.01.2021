@@ -1,29 +1,29 @@
 package com.github.krystian211.city.bus.route.search.engine.model;
 
 import javax.persistence.*;
+import java.text.Collator;
+import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
 
 @Entity(name = "busStop")
-@Table(name="tBusStop")
-public class BusStop implements Comparable<BusStop>{
+@Table(name = "tBusStop")
+public class BusStop implements Comparable<BusStop> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private String busStopName;
+    private String name;
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            joinColumns = @JoinColumn(name="busStopId"),
-            inverseJoinColumns = @JoinColumn(name = "streetId")
-    )
-    private Set<Street> streets=new TreeSet<>();
+    @JoinTable(joinColumns = @JoinColumn(name = "busStopId"),
+            inverseJoinColumns = @JoinColumn(name = "streetId"))
+    private Set<Street> streets = new TreeSet<>();
     @ManyToMany(fetch = FetchType.EAGER,
-    mappedBy = "passedBusStops")
-    private Set<BusRoute> passingBusRoutes=new TreeSet<>();
+            mappedBy = "passedBusStops")
+    private Set<BusRoute> passingBusRoutes = new TreeSet<>();
 
-    public BusStop(int id, String busStopName) {
+    public BusStop(int id, String name) {
         this.id = id;
-        this.busStopName = busStopName;
+        this.name = name;
     }
 
     public BusStop() {
@@ -37,12 +37,12 @@ public class BusStop implements Comparable<BusStop>{
         this.id = id;
     }
 
-    public String getBusStopName() {
-        return this.busStopName;
+    public String getName() {
+        return this.name;
     }
 
-    public void setBusStopName(String busStopName) {
-        this.busStopName = busStopName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Set<BusRoute> getPassingBusRoutes() {
@@ -63,7 +63,8 @@ public class BusStop implements Comparable<BusStop>{
 
     @Override
     public int compareTo(BusStop o) {
-        return this.getBusStopName().compareToIgnoreCase(o.getBusStopName());
+        Collator collator=Collator.getInstance(new Locale("pl","PL"));
+        return collator.compare(this.getName(),o.getName());
     }
 
 }

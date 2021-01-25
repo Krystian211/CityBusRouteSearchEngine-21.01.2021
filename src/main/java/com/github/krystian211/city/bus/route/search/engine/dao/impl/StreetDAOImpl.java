@@ -6,6 +6,8 @@ import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public class StreetDAOImpl implements IStreetDAO {
 
@@ -16,4 +18,11 @@ public class StreetDAOImpl implements IStreetDAO {
     public void persistStreet(Street street) {
         CommonDAOUtilities.persistObject(street,sessionFactory);
     }
+
+    @Override
+    public List<Street> getAllStreets() {
+        return CommonDAOUtilities.getAllObjects(Street.class,sessionFactory);
+    }
+
+
 }

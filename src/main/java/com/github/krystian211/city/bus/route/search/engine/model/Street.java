@@ -1,6 +1,8 @@
 package com.github.krystian211.city.bus.route.search.engine.model;
 
 import javax.persistence.*;
+import java.text.Collator;
+import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -12,8 +14,8 @@ public class Street implements Comparable<Street> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String name;
-    @ManyToMany(mappedBy = "streets",
-            fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER,
+            mappedBy = "streets")
     private Set<BusStop> onStreetBusStops = new TreeSet<>();
 
     public Street(int id, String name) {
@@ -50,6 +52,7 @@ public class Street implements Comparable<Street> {
 
     @Override
     public int compareTo(Street o) {
-        return this.name.compareToIgnoreCase(o.name);
+        Collator collator=Collator.getInstance(new Locale("pl","PL"));
+        return collator.compare(this.getName(),o.getName());
     }
 }

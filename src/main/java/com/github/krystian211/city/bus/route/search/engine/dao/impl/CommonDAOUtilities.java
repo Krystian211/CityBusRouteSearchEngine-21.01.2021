@@ -6,6 +6,7 @@ import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
 import javax.persistence.NoResultException;
+import java.util.List;
 
 public class CommonDAOUtilities {
 
@@ -22,20 +23,46 @@ public class CommonDAOUtilities {
         }
     }
 
-    static <T> T getObjectById(int objectId,String entityName, SessionFactory sessionFactory){
-        Session session=sessionFactory.openSession();
-        Query<T> query=session.createQuery("FROM com.github.krystian211.city.bus.route.search.engine.model."+entityName+" WHERE id=:id");
-        query.setParameter("id",objectId);
-        T object=null;
-        try {
+    static <T> List<T> getAllObjects(Class<T> entityClass, SessionFactory sessionFactory) {
+        Session session = sessionFactory.openSession();
+        String entityPath = entityClass.toString();
+        entityPath = entityPath.replaceAll("class", "");
+        Query<T> query = session.createQuery("FROM" + entityPath);
+        List<T> objects = query.getResultList();
+        session.close();
+        return objects;
+    }
+
+    static <T> T getObjectByAttribute(Class<T> entityClass, String attributeName, String attributeValue, SessionFactory sessionFactory) {
+        Session session = sessionFactory.openSession();
+        String entityPath = entityClass.toString();
+        entityPath=entityPath.replaceAll("class","");
+        Query<T> query = session.createQuery("FROM" + entityPath + " WHERE "+attributeName+";=attrValue");
+        query.setParameter("attrValue",attributeValue);
+        T object = null;
+        try
+        {
             object = query.getSingleResult();
-        }catch (NoResultException e){
+        }catch(
+                NoResultException e)
+        {
             System.out.println("No object found!");
-        }finally {
+        }finally
+        {
             session.close();
         }
-
         return object;
+    }
+
+    static <T> List<T> getObjectsByAttribute(Class<T> entityClass, String attributeName, String attributeValue, SessionFactory sessionFactory) {
+        Session session = sessionFactory.openSession();
+        String entityPath = entityClass.toString();
+        entityPath = entityPath.replaceAll("class", "");
+        Query<T> query = session.createQuery("FROM" + entityPath + " WHERE " + attributeName + "=:attrValue");
+        query.setParameter("attrValue", attributeName);
+        List<T> objects = query.getResultList();
+        session.close();
+        return objects;
     }
 
 }

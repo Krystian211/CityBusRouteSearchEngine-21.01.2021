@@ -1,0 +1,22 @@
+.bus-route-both-directions-div{
+    margin: 25px auto;
+    width: 500px;
+}
+
+.bus-route-one-direction-div{
+    margin: 25px auto;
+}
+
+.bus-routes-fieldset{
+    width: 600px;
+    margin: 10px auto;
+}
+
+.common-button-link{
+    display: inline;
+}
+
+.direction-p{
+    display: inline;
+    font-size: 20px;
+}

@@ -12,8 +12,8 @@ public class App {
 
     public static void main(String[] args) {
         SpringApplication.run(App.class,args);
-        //TODO remove generator
+/*      //TODO remove generator
         ApplicationContext context = new AnnotationConfigApplicationContext(com.github.krystian211.city.bus.route.search.engine.configuration.AppConfiguration.class);
-        context.getBean(TimetableGenerator.class).fillInDatabase();
+        context.getBean(TimetableGenerator.class).fillInDatabase();*/
     }
 }

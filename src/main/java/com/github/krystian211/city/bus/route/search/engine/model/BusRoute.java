@@ -1,9 +1,7 @@
 package com.github.krystian211.city.bus.route.search.engine.model;
 
 import javax.persistence.*;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 @Entity(name = "busRoute")
@@ -12,16 +10,16 @@ public class BusRoute implements Comparable<BusRoute> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private int busRouteNumber;
+    private int number;
     @ManyToMany(fetch = FetchType.EAGER,
             cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinTable(joinColumns = @JoinColumn(name = "busRouteId"),
             inverseJoinColumns = @JoinColumn(name = "busStopId"))
     private Map<Integer,BusStop> passedBusStops = new TreeMap<>();
 
-    public BusRoute(int id, int busRouteNumber) {
+    public BusRoute(int id, int number) {
         this.id = id;
-        this.busRouteNumber = busRouteNumber;
+        this.number = number;
     }
 
     public BusRoute() {
@@ -35,12 +33,12 @@ public class BusRoute implements Comparable<BusRoute> {
         this.id = id;
     }
 
-    public int getBusRouteNumber() {
-        return this.busRouteNumber;
+    public int getNumber() {
+        return this.number;
     }
 
-    public void setBusRouteNumber(int busRouteNumber) {
-        this.busRouteNumber = busRouteNumber;
+    public void setNumber(int number) {
+        this.number = number;
     }
 
     public Map<Integer, BusStop> getPassedBusStops() {
@@ -53,6 +51,7 @@ public class BusRoute implements Comparable<BusRoute> {
 
     @Override
     public int compareTo(BusRoute o) {
-        return Integer.compare(this.busRouteNumber, o.busRouteNumber);
+        return Integer.compare(this.number, o.number);
     }
+
 }

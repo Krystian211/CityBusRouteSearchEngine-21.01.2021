@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Bus route search engine</title>
+    <link rel="stylesheet" href="/main-page.css">
+    <link rel="stylesheet" href="/common-elements.css">
+</head>
+<body>
+<div th:replace="common-elements.html::menu"></div>
+<div>
+    <fieldset class="timetables-fieldset">
+        <legend>Rozkłady jazdy</legend>
+        <div class="timetables-div">
+            <a href="timetables/streets" class="common-button-link">Rozkład jazdy według ulic</a>
+            <a href="timetables/bus-stops" class="common-button-link">Rozkład jazdy według przystanków</a>
+            <p>Rozkłady jazdy według linii autobusowych</p>
+            <a th:each="busRoute:${busRouteList}" th:href="@{/timetables/bus-routes(busRouteId=${busRoute.id})}" th:text="${busRoute.number}" class="common-button-link"></a>
+        </div>
+
+
+    </fieldset>
+</div>
+</body>
+</html>

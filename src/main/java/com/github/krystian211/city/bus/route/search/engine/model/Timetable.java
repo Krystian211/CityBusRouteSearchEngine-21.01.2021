@@ -89,4 +89,5 @@ public class Timetable {
     public void setSundayAndHolidaysArrivalTimes(Set<LocalTime> sundayAndHolidaysArrivalTimes) {
         this.sundayAndHolidaysArrivalTimes = sundayAndHolidaysArrivalTimes;
     }
+
 }

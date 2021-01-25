@@ -1,0 +1,41 @@
+.menu{
+    padding-bottom: 0.3%;
+    text-align: center;
+    margin: 1% auto;
+    background: #082759
+}
+
+.menu a{
+    text-decoration: none;
+    color: white;
+    font-size: 120%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    transition: color 0.5s;
+    margin: 0;
+    padding: 1% 2% 1% 2%;
+    border-left: 5px solid white;
+}
+
+.menu a:last-of-type{
+    border-right: 5px solid white;
+}
+
+.menu a:hover{
+    color: #bd1c1c;
+}
+
+.common-button-link{
+    background-color:#219e43;
+    color: white;
+    font-size:100%;
+    text-decoration: none;
+    padding: 0.5em 0.75em;
+    transition: background-color 0.5s;
+    border: solid #082759 2px;
+    border-radius: 5px;
+    margin:10px;
+}
+
+.common-button-link:hover{
+    background: #bd1c1c;
+}
