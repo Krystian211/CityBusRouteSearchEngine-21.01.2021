@@ -2,6 +2,7 @@ package com.github.krystian211.city.bus.route.search.engine.model;
 
 import javax.persistence.*;
 import java.text.Collator;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;

@@ -15,7 +15,7 @@ public class BusRoute implements Comparable<BusRoute> {
             cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinTable(joinColumns = @JoinColumn(name = "busRouteId"),
             inverseJoinColumns = @JoinColumn(name = "busStopId"))
-    private Map<Integer,BusStop> passedBusStops = new TreeMap<>();
+    private Map<Integer, BusStop> passedBusStops = new TreeMap<>();
 
     public BusRoute(int id, int number) {
         this.id = id;

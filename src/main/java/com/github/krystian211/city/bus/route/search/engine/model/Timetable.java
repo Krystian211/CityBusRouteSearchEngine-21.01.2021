@@ -7,22 +7,23 @@ import java.util.TreeSet;
 
 @Entity(name = "timetable")
 @Table(name = "tTimetable")
-public class Timetable {
+public class Timetable implements Comparable<Timetable>{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "busRoute_id")
     private BusRoute busRoute;
     @ManyToOne(fetch = FetchType.EAGER)
     private BusStop parentBusStop;
     @ManyToOne(fetch = FetchType.EAGER)
     private BusStop direction;
-    @ElementCollection
-    private Set<LocalTime> weekdaysArrivalTimes=new TreeSet<>();
-    @ElementCollection
-    private Set<LocalTime> saturdayArrivalTimes=new TreeSet<>();
-    @ElementCollection
-    private Set<LocalTime> sundayAndHolidaysArrivalTimes=new TreeSet<>();
+    @ElementCollection(fetch = FetchType.EAGER)
+    private Set<LocalTime> weekdayDepartureTimes =new TreeSet<>();
+    @ElementCollection(fetch = FetchType.EAGER)
+    private Set<LocalTime> saturdayDepartureTimes =new TreeSet<>();
+    @ElementCollection(fetch = FetchType.EAGER)
+    private Set<LocalTime> sundayAndHolidayDepartureTimes =new TreeSet<>();
 
     public Timetable(int id, BusRoute busRoute, BusStop parentBusStop, BusStop direction) {
         this.id = id;
@@ -66,28 +67,41 @@ public class Timetable {
         this.direction = direction;
     }
 
-    public Set<LocalTime> getWeekdaysArrivalTimes() {
-        return this.weekdaysArrivalTimes;
+    public Set<LocalTime> getWeekdayDepartureTimes() {
+        return this.weekdayDepartureTimes;
     }
 
-    public void setWeekdaysArrivalTimes(Set<LocalTime> weekdaysArrivalTimes) {
-        this.weekdaysArrivalTimes = weekdaysArrivalTimes;
+    public void setWeekdayDepartureTimes(Set<LocalTime> weekdayDepartureTimes) {
+        this.weekdayDepartureTimes = weekdayDepartureTimes;
     }
 
-    public Set<LocalTime> getSaturdayArrivalTimes() {
-        return this.saturdayArrivalTimes;
+    public Set<LocalTime> getSaturdayDepartureTimes() {
+        return this.saturdayDepartureTimes;
     }
 
-    public void setSaturdayArrivalTimes(Set<LocalTime> saturdayArrivalTimes) {
-        this.saturdayArrivalTimes = saturdayArrivalTimes;
+    public void setSaturdayDepartureTimes(Set<LocalTime> saturdayDepartureTimes) {
+        this.saturdayDepartureTimes = saturdayDepartureTimes;
     }
 
-    public Set<LocalTime> getSundayAndHolidaysArrivalTimes() {
-        return this.sundayAndHolidaysArrivalTimes;
+    public Set<LocalTime> getSundayAndHolidayDepartureTimes() {
+        return this.sundayAndHolidayDepartureTimes;
     }
 
-    public void setSundayAndHolidaysArrivalTimes(Set<LocalTime> sundayAndHolidaysArrivalTimes) {
-        this.sundayAndHolidaysArrivalTimes = sundayAndHolidaysArrivalTimes;
+    public void setSundayAndHolidayDepartureTimes(Set<LocalTime> sundayAndHolidayDepartureTimes) {
+        this.sundayAndHolidayDepartureTimes = sundayAndHolidayDepartureTimes;
     }
 
+    @Override
+    public int compareTo(Timetable o) {
+        if (this.busRoute.getNumber()>o.busRoute.getNumber()) {
+            return 1;
+        }else if (this.busRoute.getNumber()<o.busRoute.getNumber()){
+            return -1;
+
+        }else {
+            return this.direction.getName().compareTo(o.direction.getName());
+        }
+
+
+    }
 }

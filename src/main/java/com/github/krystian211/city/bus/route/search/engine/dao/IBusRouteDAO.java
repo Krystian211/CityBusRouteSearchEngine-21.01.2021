@@ -8,4 +8,5 @@ public interface IBusRouteDAO {
     void persistBusRoute(BusRoute busRoute);
     List<BusRoute> getAllBusRoutes();
     List<BusRoute> getBusRoutesByBusStop(int busStopId);
+    BusRoute getBusRouteById(int busRouteId);
 }

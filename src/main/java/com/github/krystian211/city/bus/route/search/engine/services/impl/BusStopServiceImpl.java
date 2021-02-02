@@ -21,6 +21,10 @@ public class BusStopServiceImpl implements IBusStopService {
 
     @Override
     public List<BusStop> getBusStopsByStreet(int streetId) {
-        return this.busStopDAO.getBusStopsByStreet(streetId);
+        if (streetId==0) {
+            return this.busStopDAO.getAllBusStop();
+        }else {
+            return this.busStopDAO.getBusStopsByStreet(streetId);
+        }
     }
 }

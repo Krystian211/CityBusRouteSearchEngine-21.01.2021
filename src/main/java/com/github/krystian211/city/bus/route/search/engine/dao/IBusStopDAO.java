@@ -8,5 +8,6 @@ public interface IBusStopDAO {
     void persistBusStop(BusStop busStop);
     List<BusStop> getAllBusStop();
     List<BusStop> getBusStopsByStreet(int streetId);
+    BusStop getBusStopById(int busStopId);
 
 }

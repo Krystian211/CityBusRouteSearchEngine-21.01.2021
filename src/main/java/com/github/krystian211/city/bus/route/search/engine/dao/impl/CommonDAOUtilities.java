@@ -33,12 +33,12 @@ public class CommonDAOUtilities {
         return objects;
     }
 
-    static <T> T getObjectByAttribute(Class<T> entityClass, String attributeName, String attributeValue, SessionFactory sessionFactory) {
+    static <T> T getObjectById(Class<T> entityClass, int idValue, SessionFactory sessionFactory) {
         Session session = sessionFactory.openSession();
         String entityPath = entityClass.toString();
         entityPath=entityPath.replaceAll("class","");
-        Query<T> query = session.createQuery("FROM" + entityPath + " WHERE "+attributeName+";=attrValue");
-        query.setParameter("attrValue",attributeValue);
+        Query<T> query = session.createQuery("FROM" + entityPath + " WHERE id=:idValue");
+        query.setParameter("idValue",idValue);
         T object = null;
         try
         {
@@ -53,16 +53,4 @@ public class CommonDAOUtilities {
         }
         return object;
     }
-
-    static <T> List<T> getObjectsByAttribute(Class<T> entityClass, String attributeName, String attributeValue, SessionFactory sessionFactory) {
-        Session session = sessionFactory.openSession();
-        String entityPath = entityClass.toString();
-        entityPath = entityPath.replaceAll("class", "");
-        Query<T> query = session.createQuery("FROM" + entityPath + " WHERE " + attributeName + "=:attrValue");
-        query.setParameter("attrValue", attributeName);
-        List<T> objects = query.getResultList();
-        session.close();
-        return objects;
-    }
-
 }

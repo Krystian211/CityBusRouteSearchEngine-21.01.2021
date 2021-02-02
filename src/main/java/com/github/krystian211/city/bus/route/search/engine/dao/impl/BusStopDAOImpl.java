@@ -35,4 +35,9 @@ public class BusStopDAOImpl implements IBusStopDAO {
         session.close();
         return busStops;
     }
+
+    @Override
+    public BusStop getBusStopById(int busStopId) {
+        return CommonDAOUtilities.getObjectById(BusStop.class,busStopId,sessionFactory);
+    }
 }

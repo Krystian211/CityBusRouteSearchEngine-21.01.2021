@@ -23,4 +23,9 @@ public class BusRouteServiceImpl implements IBusRouteService {
     public List<BusRoute> getBusRoutesByBusStop(int busStopId) {
         return busRouteDAO.getBusRoutesByBusStop(busStopId);
     }
+
+    @Override
+    public BusRoute getBusRouteById(int busRouteId) {
+        return this.busRouteDAO.getBusRouteById(busRouteId);
+    }
 }

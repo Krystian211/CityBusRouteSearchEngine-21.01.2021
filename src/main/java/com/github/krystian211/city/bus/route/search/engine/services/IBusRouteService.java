@@ -7,4 +7,5 @@ import java.util.List;
 public interface IBusRouteService {
     List<BusRoute> getAllBusRoutes();
     List<BusRoute> getBusRoutesByBusStop(int busStopId);
+    BusRoute getBusRouteById(int busRouteId);
 }

@@ -5,7 +5,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-public class TravelPlanningData {
+public class TravelPlanningInputData {
     private int startingBusStopId;
     private int endBusStopId;
     private LocalTime travelStartingTime;
@@ -13,7 +13,7 @@ public class TravelPlanningData {
     private LocalDate travelDate;
     private int changeNumber;
 
-    public TravelPlanningData(int startingBusStopId, int endBusStopId, LocalTime travelStartingTime, LocalDate travelDate, int changeNumber) {
+    public TravelPlanningInputData(int startingBusStopId, int endBusStopId, LocalTime travelStartingTime, LocalDate travelDate, int changeNumber) {
         this.startingBusStopId = startingBusStopId;
         this.endBusStopId = endBusStopId;
         this.travelStartingTime = travelStartingTime;
@@ -21,7 +21,7 @@ public class TravelPlanningData {
         this.changeNumber = changeNumber;
     }
 
-    public TravelPlanningData() {
+    public TravelPlanningInputData() {
     }
 
     public int getStartingBusStopId() {
@@ -64,10 +64,10 @@ public class TravelPlanningData {
         this.changeNumber = changeNumber;
     }
 
-    public static TravelPlanningData initialize(TravelPlanningData travelPlanningData) {
-        travelPlanningData.setTravelStartingTime(LocalTime.now());
-        travelPlanningData.setTravelDate(LocalDate.now());
-        travelPlanningData.setChangeNumber(0);
-        return travelPlanningData;
+    public static TravelPlanningInputData initialize(TravelPlanningInputData travelPlanningInputData) {
+        travelPlanningInputData.setTravelStartingTime(LocalTime.now());
+        travelPlanningInputData.setTravelDate(LocalDate.now());
+        travelPlanningInputData.setChangeNumber(0);
+        return travelPlanningInputData;
     }
 }

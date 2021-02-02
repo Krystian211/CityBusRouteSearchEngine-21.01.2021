@@ -12,7 +12,7 @@
     <fieldset class="bus-stops-fieldset">
         <legend>Przystanki</legend>
         <div th:each="busStop:${busStopList}" class="bus-stop-div">
-            <a th:href="@{/timetables/streets/bus-stops/bus-routes(busStopId=${busStop.id})}" th:text="${busStop.name}" class="common-button-link"></a>
+            <a th:href="@{__${#httpServletRequest.requestURI}__/bus-routes(busStopId=${busStop.id})}" th:text="${busStop.name}" class="common-button-link"></a>
         </div>
     </fieldset>
 </div>

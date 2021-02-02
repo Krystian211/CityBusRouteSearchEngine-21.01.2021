@@ -1,10 +1,10 @@
 package com.github.krystian211.city.bus.route.search.engine.controllers;
 
-import com.github.krystian211.city.bus.route.search.engine.model.Street;
-import com.github.krystian211.city.bus.route.search.engine.model.view.SimpleRouteSearchData;
-import com.github.krystian211.city.bus.route.search.engine.services.IBusRouteService;
-import com.github.krystian211.city.bus.route.search.engine.services.IBusStopService;
-import com.github.krystian211.city.bus.route.search.engine.services.IStreetService;
+import com.github.krystian211.city.bus.route.search.engine.model.view.BusRouteBusStopsData;
+import com.github.krystian211.city.bus.route.search.engine.model.view.TimetableDrawData;
+import com.github.krystian211.city.bus.route.search.engine.model.view.TravelPlanningInputData;
+import com.github.krystian211.city.bus.route.search.engine.services.*;
+import com.github.krystian211.city.bus.route.search.engine.session.SessionObject;
 import com.github.krystian211.city.bus.route.search.engine.utils.Sorter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -13,8 +13,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import java.util.Collections;
 
 @Controller
 public class CommonController {
@@ -28,35 +26,77 @@ public class CommonController {
     @Autowired
     IBusRouteService busRouteService;
 
+    @Autowired
+    ITimetableService timetableService;
+
+    @Autowired
+    SessionObject sessionObject;
+
+    @Autowired
+    ITravelPlanner travelPlanner;
+
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String showMainPage(Model model) {
+        //TODO remmove
+
+        TravelPlanningInputData travelPlanningInputData=new TravelPlanningInputData();
+        travelPlanningInputData.setChangeNumber(0);
+        travelPlanningInputData.setEndBusStopId(8);
+        travelPlanningInputData.setStartingBusStopId(1);
+        this.travelPlanner.planTravel(travelPlanningInputData);
+
+
         model.addAttribute("busRouteList", this.busRouteService.getAllBusRoutes());
         return "main-page";
     }
 
-    @RequestMapping(value = "/timetables/streets", method = RequestMethod.GET)
+    @RequestMapping(value = "/streets", method = RequestMethod.GET)
     public String showStreets(Model model) {
         model.addAttribute("streetList", Sorter.sort(this.streetService.getAllStreets()));
         return "streets";
     }
 
-    @RequestMapping(value = "/timetables/streets/bus-stops", method = RequestMethod.GET)
-    public String showBusStopsOnStreet(Model model, @RequestParam int streetId) {
+    @RequestMapping(value = {"/streets/bus-stops", "/bus-stops"}, method = RequestMethod.GET)
+    public String showBusStopsOnStreet(Model model,
+                                       @RequestParam(defaultValue = "0") int streetId) {
         model.addAttribute("busStopList", Sorter.sort(this.busStopService.getBusStopsByStreet(streetId)));
         return "bus-stops";
     }
 
-    @RequestMapping(value = "/timetables/streets/bus-stops/bus-routes", method = RequestMethod.GET)
-    public String showBusRoutesPassingThroughBusStop(Model model, @RequestParam int busStopId) {
-        model.addAttribute("busRouteList", Sorter.sort(this.busRouteService.getBusRoutesByBusStop(busStopId)));
+    @RequestMapping(value = {"/streets/bus-stops/bus-routes", "/bus-stops/bus-routes"}, method = RequestMethod.GET)
+    public String showBusRoutesPassingThroughBusStop(Model model,
+                                                     @RequestParam int busStopId) {
+        model.addAttribute("timetableList", this.timetableService.getTimetablesByBusStop(busStopId));
         return "bus-routes";
     }
 
-    @RequestMapping(value = "/simple-route-search", method = RequestMethod.POST)
-    public String simpleRouteSearch(@ModelAttribute SimpleRouteSearchData simpleRouteSearchData) {
-        System.out.println(simpleRouteSearchData.getStartingStreetId());
-        System.out.println(simpleRouteSearchData.getEndStreetId());
-        return "redirect:/";
+    @RequestMapping(value = {"/streets/bus-stops/bus-routes/timetable", "bus-stops/bus-routes/timetable", "bus-route-bus-stops/timetable"}, method = RequestMethod.GET)
+    public String showTimetableByBusStopAndBusRouteAndDirection(Model model,
+                                                                @RequestParam int busRouteId,
+                                                                @RequestParam int busStopId,
+                                                                @RequestParam int directionId) {
+        model.addAttribute("timetableDrawData", new TimetableDrawData(this.timetableService.getTimetable(busStopId, busRouteId, directionId)));
+        return "timetable";
+    }
+
+    @RequestMapping(value = {"/bus-route-bus-stops"}, method = RequestMethod.GET)
+    public String showOnRouteBusStops(Model model,
+                                      @RequestParam int busRouteId) {
+        model.addAttribute("busRouteBusStopsData", new BusRouteBusStopsData(this.busRouteService.getBusRouteById(busRouteId)));
+        return "bus-route-bus-stops";
+    }
+
+    @RequestMapping(value = "/travel-planning", method = RequestMethod.GET)
+    public String travelPlanning(Model model) {
+        model.addAttribute("busStopList",this.busStopService.getAllBusStops());
+        model.addAttribute("travelPlanningData", TravelPlanningInputData.initialize(new TravelPlanningInputData()));
+        return "travel-planning";
+    }
+
+    @RequestMapping(value = "/travel-planning", method = RequestMethod.POST)
+    public String travelPlanning(@ModelAttribute TravelPlanningInputData travelPlanningInputData) {
+        this.sessionObject.setTravelPlanningInputData(travelPlanningInputData);
+        return "travel-planning";
     }
 
 }

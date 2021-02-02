@@ -4,6 +4,7 @@ import com.github.krystian211.city.bus.route.search.engine.dao.*;
 import com.github.krystian211.city.bus.route.search.engine.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import java.time.LocalTime;
 import java.util.*;
 
@@ -35,7 +36,7 @@ public class TimetableGenerator {
     private List<TravelTime> travelTimeList = new ArrayList<>();
     private List<List<BusStop>> passedBusStopsList = new ArrayList<>();
     private List<BusRoute> busRouteList = new ArrayList<>();
-    private List<Timetable> timetableList=new ArrayList<>();
+    private List<Timetable> timetableList = new ArrayList<>();
 
     private LocalTime weekdayStartingTime = LocalTime.of(4, 0);
     private LocalTime weekdayEndTime = LocalTime.of(23, 0);
@@ -60,11 +61,13 @@ public class TimetableGenerator {
         for (BusRoute busRoute : busRouteList) {
             this.busRouteDAO.persistBusRoute(busRoute);
         }
+        for (TravelTime travelTime : travelTimeList) {
+            this.travelTimeDAO.persistTravelTime(travelTime);
+        }
 
         for (Timetable timetable : this.timetableList) {
             this.timetableDAO.persistTimetable(timetable);
         }
-
     }
 
     private void generate() {
@@ -299,7 +302,6 @@ public class TimetableGenerator {
 
     private void listBusStops() {
         for (BusStop busStop : busStopList) {
-            System.out.println(busStop.getId() + " - " + busStop.getName());
         }
     }
 
@@ -341,21 +343,26 @@ public class TimetableGenerator {
     private List<Timetable> generateTimetablesForBusRoute(BusRoute busRoute) {
         List<Timetable> timetables = new ArrayList<>();
         Timetable tmpTimetable;
+
         for (Map.Entry<Integer, BusStop> entry : busRoute.getPassedBusStops().entrySet()) {
             //generating empty timetables in both directions
-            tmpTimetable = new Timetable();
-            tmpTimetable.setId(0);
-            tmpTimetable.setBusRoute(busRoute);
-            tmpTimetable.setParentBusStop(entry.getValue());
-            tmpTimetable.setDirection(busRoute.getPassedBusStops().get(0));
-            timetables.add(tmpTimetable);
+            if (!(entry.getKey() == 0)) {
+                tmpTimetable = new Timetable();
+                tmpTimetable.setId(0);
+                tmpTimetable.setBusRoute(busRoute);
+                tmpTimetable.setParentBusStop(entry.getValue());
+                tmpTimetable.setDirection(busRoute.getPassedBusStops().get(0));
+                timetables.add(tmpTimetable);
+            }
 
-            tmpTimetable = new Timetable();
-            tmpTimetable.setId(0);
-            tmpTimetable.setBusRoute(busRoute);
-            tmpTimetable.setParentBusStop(entry.getValue());
-            tmpTimetable.setDirection(busRoute.getPassedBusStops().get(busRoute.getPassedBusStops().size() - 1));
-            timetables.add(tmpTimetable);
+            if (!(entry.getKey() == busRoute.getPassedBusStops().size() - 1)) {
+                tmpTimetable = new Timetable();
+                tmpTimetable.setId(0);
+                tmpTimetable.setBusRoute(busRoute);
+                tmpTimetable.setParentBusStop(entry.getValue());
+                tmpTimetable.setDirection(busRoute.getPassedBusStops().get(busRoute.getPassedBusStops().size() - 1));
+                timetables.add(tmpTimetable);
+            }
         }
 
         Bus bus = new Bus(busRoute,
@@ -373,7 +380,7 @@ public class TimetableGenerator {
         return timetables;
     }
 
-    private void fillInTimetableList(){
+    private void fillInTimetableList() {
         for (BusRoute busRoute : this.busRouteList) {
             this.timetableList.addAll(generateTimetablesForBusRoute(busRoute));
         }
@@ -391,11 +398,11 @@ public class TimetableGenerator {
     private void updateTimetable(List<Timetable> timetables, BusStop direction, BusStop actualBustStop, int dayOfWeek, LocalTime arrivalTime) {
         Timetable tmp = getTimetableByDirectionAndBusStop(timetables, direction, actualBustStop);
         if ((dayOfWeek >= 1) && (dayOfWeek <= 5)) {
-            tmp.getWeekdaysArrivalTimes().add(arrivalTime);
+            tmp.getWeekdayDepartureTimes().add(arrivalTime);
         } else if (dayOfWeek == 6) {
-            tmp.getSaturdayArrivalTimes().add(arrivalTime);
+            tmp.getSaturdayDepartureTimes().add(arrivalTime);
         } else {
-            tmp.getSaturdayArrivalTimes().add(arrivalTime);
+            tmp.getSundayAndHolidayDepartureTimes().add(arrivalTime);
         }
     }
 
@@ -405,85 +412,111 @@ public class TimetableGenerator {
                 return this.travelTimeMultiplier * travelTime.getTravelTime();
             }
         }
-        System.out.println();
-        System.out.println(start.getId()+" - "+stop.getId());
         throw new IllegalArgumentException("No travel time found!");
     }
 
     private class Bus {
         private BusRoute busRoute;
         private BusStop startingPoint;
-        private BusStop direction;
-        private BusStop actualPosition;
+        private BusStop startingDirection;
+        private BusStop currentDirection;
+        private BusStop currentPosition;
         private List<Timetable> emptyTimetables;
         private int lastStopNumber;
         private LocalTime presentTime;
 
         private int delay;
 
-        public Bus(BusRoute busRoute, BusStop startingPoint, BusStop direction, List<Timetable> emptyTimetables) {
+        public Bus(BusRoute busRoute, BusStop startingPoint, BusStop startingDirection, List<Timetable> emptyTimetables) {
             this.busRoute = busRoute;
             this.startingPoint = startingPoint;
-            this.direction = direction;
+            this.startingDirection = startingDirection;
             this.emptyTimetables = emptyTimetables;
-            this.actualPosition = startingPoint;
+            this.currentDirection=this.startingDirection;
+            this.currentPosition = startingPoint;
             this.lastStopNumber = this.busRoute.getPassedBusStops().size() - 1;
             Random random = new Random();
             this.delay = random.nextInt(11);
         }
 
-        private void goToAnotherBusStop() {
-            int actualStopNumber = 0;
-            BusStop earlierBusStop = this.actualPosition;
-            for (Map.Entry<Integer, BusStop> entry : busRoute.getPassedBusStops().entrySet()) {
-                if (entry.getValue() == this.actualPosition) {
-                    actualStopNumber = entry.getKey();
+        private boolean goToAnotherBusStop() {
+            boolean timetableUpdateNeeded = false;
+            int passedTime = 0;
+            BusStop previousBusStop;
+
+            //jeśli aktualny przystanek to ostatni n-ty przystanek na trasie
+            if ((getBusStopNumber(this.currentPosition) == this.lastStopNumber) && (this.currentDirection == this.busRoute.getPassedBusStops().get(lastStopNumber))) {
+                this.currentDirection = this.busRoute.getPassedBusStops().get(0);
+                passedTime = 1;
+                timetableUpdateNeeded = true;
+                //jeśli aktualny przystanek to ostani 0-owy przystanek na trasie
+            } else if ((getBusStopNumber(this.currentPosition) == 0) && (this.currentDirection == this.busRoute.getPassedBusStops().get(0))) {
+                this.currentDirection = this.busRoute.getPassedBusStops().get(lastStopNumber);
+                passedTime = 1;
+                timetableUpdateNeeded = true;
+            } else {
+                previousBusStop = this.currentPosition;
+                //jeśli numery przystanków rosną
+                if (currentDirection == this.busRoute.getPassedBusStops().get(lastStopNumber)) {
+                    this.currentPosition = this.busRoute.getPassedBusStops().get(getBusStopNumber(previousBusStop) + 1);
+                    //jeśli bus nie jest na ostatnim przystanku na trasie
+                    if (!(this.currentPosition == this.busRoute.getPassedBusStops().get(lastStopNumber))) {
+                        timetableUpdateNeeded = true;
+                    }
+                    //jeśli maleją
+                } else {
+                    this.currentPosition = this.busRoute.getPassedBusStops().get(getBusStopNumber(previousBusStop) - 1);
+                    //jeśli nie bus nie jest a ostatnim przystanku na trasie
+                    if (!(this.currentPosition == this.busRoute.getPassedBusStops().get(0))) {
+                        timetableUpdateNeeded = true;
+                    }
+                }
+                passedTime = getTravelTime(this.currentPosition, previousBusStop);
+            }
+            this.presentTime = this.presentTime.plusMinutes(passedTime);
+
+            return timetableUpdateNeeded;
+        }
+
+        private int getBusStopNumber(BusStop busStop) {
+            for (Map.Entry<Integer, BusStop> integerBusStopEntry : this.busRoute.getPassedBusStops().entrySet()) {
+                if (integerBusStopEntry.getValue().equals(busStop)) {
+                    return integerBusStopEntry.getKey();
                 }
             }
-            if (this.direction == this.busRoute.getPassedBusStops().get(lastStopNumber)) {
-                if (actualStopNumber < lastStopNumber) {
-                    actualStopNumber++;
-                    this.actualPosition = this.busRoute.getPassedBusStops().get(actualStopNumber);
-                    this.presentTime = this.presentTime.plusMinutes(getTravelTime(earlierBusStop, this.actualPosition));
-                } else {
-                    this.direction = this.busRoute.getPassedBusStops().get(0);
-                    this.presentTime = this.presentTime.plusMinutes(1);
-                }
-            } else if (this.direction == this.busRoute.getPassedBusStops().get(0)) {
-                if (actualStopNumber > 0) {
-                    actualStopNumber--;
-                    this.actualPosition = this.busRoute.getPassedBusStops().get(actualStopNumber);
-                } else {
-                    this.direction = this.busRoute.getPassedBusStops().get(lastStopNumber);
-                    this.presentTime = this.presentTime.plusMinutes(1);
-                }
-            }
+            throw new IllegalArgumentException("No bus stop number found");
         }
 
         public void fillInWeekdayTimetables() {
+            this.currentPosition=this.startingPoint;
+            this.currentDirection=this.startingDirection;
             this.presentTime = weekdayStartingTime.plusMinutes(delay);
-            updateTimetable(this.emptyTimetables, this.direction, this.actualPosition, 1, presentTime);
-            while ((this.presentTime.isBefore(weekdayEndTime.minusMinutes(30)) || (this.actualPosition != this.direction))) {
-                goToAnotherBusStop();
-                updateTimetable(this.emptyTimetables, this.direction, this.actualPosition, 1, presentTime);
+            while ((this.presentTime.isBefore(weekdayEndTime.minusMinutes(45)) || (this.currentPosition != this.currentDirection))) {
+                if (goToAnotherBusStop()) {
+                    updateTimetable(this.emptyTimetables, this.currentDirection, this.currentPosition, 1, presentTime);
+                }
             }
         }
 
         public void fillInSaturdayTimetables() {
+            this.currentPosition=this.startingPoint;
+            this.currentDirection=this.startingDirection;
             this.presentTime = saturdayStartingTime.plusMinutes(delay);
-            updateTimetable(this.emptyTimetables, this.direction, this.actualPosition, 6, presentTime);
-            while ((this.presentTime.isBefore(saturdayEndTime.minusMinutes(30)) || (this.actualPosition != this.direction))) {
-                goToAnotherBusStop();
-                updateTimetable(this.emptyTimetables, this.direction, this.actualPosition, 1, presentTime);
+            while ((this.presentTime.isBefore(saturdayEndTime.minusMinutes(45)) || (this.currentPosition != this.currentDirection))) {
+                if (goToAnotherBusStop()) {
+                    updateTimetable(this.emptyTimetables, this.currentDirection, this.currentPosition, 6, presentTime);
+                }
             }
         }
 
         public void fillInSundayTimetables() {
+            this.currentPosition=this.startingPoint;
+            this.currentDirection=this.startingDirection;
             this.presentTime = sundayStartingTime.plusMinutes(delay);
-            updateTimetable(this.emptyTimetables, this.direction, this.actualPosition, 7, presentTime);
-            while ((this.presentTime.isBefore(sundayEndTime.minusMinutes(30)) || (this.actualPosition != this.direction))) {
-                goToAnotherBusStop();
-                updateTimetable(this.emptyTimetables, this.direction, this.actualPosition, 1, presentTime);
+            while ((this.presentTime.isBefore(sundayEndTime.minusMinutes(45)) || (this.currentPosition != this.currentDirection))) {
+                if (goToAnotherBusStop()) {
+                    updateTimetable(this.emptyTimetables, this.currentDirection, this.currentPosition, 0, presentTime);
+                }
             }
         }
 

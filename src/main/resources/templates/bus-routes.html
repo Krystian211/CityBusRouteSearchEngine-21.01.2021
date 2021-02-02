@@ -11,14 +11,10 @@
 <div>
     <fieldset class="bus-routes-fieldset">
         <legend>Linie autobusowe</legend>
-        <div th:each="busRoute:${busRouteList}" class="bus-route-both-directions-div">
-            <div class="bus-route-one-direction-div">
-                <a th:href="@{/timetables/streets/bus-stops/bus-routes(busRouteId=${busRoute.id})}" th:text="${busRoute.number}" class="common-button-link"></a>
-                <p th:text="'&#10145 ' +${busRoute.passedBusStops.get(0).getName()}" class="direction-p"></p>
-            </div>
-            <div class="bus-route-one-direction-div">
-                <a th:href="@{/timetables/streets/bus-stops/bus-routes(busRouteId=${busRoute.id})}" th:text="${busRoute.number}" class="common-button-link"></a>
-                <p th:text="'&#10145 ' +${busRoute.passedBusStops.get((busRoute.passedBusStops.size())-1).getName()}" class="direction-p"></p>
+        <div th:each="timetable:${timetableList}">
+            <div  class="bus-routes-with-direction-div">
+                <a th:href="@{__${#httpServletRequest.requestURI}__/timetable(busStopId=${param.busStopId},busRouteId=${timetable.busRoute.id},directionId=${timetable.direction.id})}" th:text="${timetable.busRoute.number}" class="common-button-link"></a>
+                <p th:text="'&#10145 ' +${timetable.direction.name}" class="direction-p"></p>
             </div>
         </div>
 

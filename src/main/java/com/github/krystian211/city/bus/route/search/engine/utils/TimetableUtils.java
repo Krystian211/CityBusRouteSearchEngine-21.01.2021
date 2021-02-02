@@ -6,12 +6,12 @@ import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Set;
 
-public class TimetableHeightCalculator {
+public class TimetableUtils {
     public static int[] calculateMinutesRowNumbers(Timetable timetable) {
         int[] rowNumbers = new int[3];
-        rowNumbers[0]=findRowNumber(timetable.getWeekdayArrivalTimes());
-        rowNumbers[1]=findRowNumber(timetable.getSaturdayArrivalTimes());
-        rowNumbers[2]=findRowNumber(timetable.getSundayAndHolidayArrivalTimes());
+        rowNumbers[0]=findRowNumber(timetable.getWeekdayDepartureTimes());
+        rowNumbers[1]=findRowNumber(timetable.getSaturdayDepartureTimes());
+        rowNumbers[2]=findRowNumber(timetable.getSundayAndHolidayDepartureTimes());
         return rowNumbers;
     }
 
@@ -21,7 +21,6 @@ public class TimetableHeightCalculator {
             rowNumberForEachHour[localTime.getHour()]=+1;
         }
         Arrays.sort(rowNumberForEachHour);
-        System.out.println(Arrays.toString(rowNumberForEachHour));
         return rowNumberForEachHour[23];
     }
 }

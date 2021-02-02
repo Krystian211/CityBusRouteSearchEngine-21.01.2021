@@ -37,4 +37,9 @@ public class BusRouteDAOImpl implements IBusRouteDAO {
         return busStops;
     }
 
+    @Override
+    public BusRoute getBusRouteById(int busRouteId) {
+        return CommonDAOUtilities.getObjectById(BusRoute.class,busRouteId,sessionFactory);
+    }
+
 }
