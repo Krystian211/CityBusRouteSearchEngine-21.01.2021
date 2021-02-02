@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Bus route search engine</title>
+    <link rel="stylesheet" href="/bus-routes-bus-stops.css">
+    <link rel="stylesheet" href="/common-elements.css">
+</head>
+<body>
+<div th:replace="common-elements.html::menu"></div>
+<div>
+    <fieldset class="bus-routes-bus-stops-fieldset">
+        <legend>Rozkałdy jazdy dla:</legend>
+        <table>
+            <tr>
+                <td colspan="2" th:text="'Linia '+${busRoute.number}"></td>
+            </tr>
+            <tr>
+                <td th:text="'Kierunek &#10145 ' +${busRoute.number}"></td>
+            </tr>
+        </table>
+        <div th:each="timetable:${timetableList}">
+            <div  class="bus-routes-with-direction-div">
+                <a th:href="@{__${#httpServletRequest.requestURI}__/timetable(busStopId=${param.busStopId},busRouteId=${timetable.busRoute.id},directionId=${timetable.direction.id})}" th:text="${timetable.busRoute.number}" class="common-button-link"></a>
+                <p th:text="'&#10145 ' +${timetable.direction.name}" class="direction-p"></p>
+            </div>
+        </div>
+
+    </fieldset>
+</div>
+</body>
+</html>
