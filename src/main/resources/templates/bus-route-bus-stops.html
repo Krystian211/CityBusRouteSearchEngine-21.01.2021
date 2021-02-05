@@ -13,7 +13,9 @@
         <legend>Rozkłady jazdy dla:</legend>
         <table class="bus-stops-table">
             <tr>
-                <td colspan="2" th:text="'Linia '+${busRouteBusStopsData.busRouteNumber}" class="bus-route-header"></td>
+                <td colspan="2"class="bus-route-header">
+                    <p th:text="'Linia '+${busRouteBusStopsData.busRouteNumber}" class="bus-route-header-p"></p>
+                </td>
             </tr>
             <tr>
                 <td th:text="'Kierunek &#10145 ' +${busRouteBusStopsData.bothDirectionsBusStops.get(0).get(1).name}" class="direction-header left-table-column"></td>
@@ -25,10 +27,10 @@
             </tr>
             <tr th:each="busStopsPair:${busRouteBusStopsData.bothDirectionsBusStops}">
                 <td class="bus-stop-data-cell left-table-column">
-                    <a th:href="@{/bus-route-bus-stops/timetable(busRouteId=${busRouteBusStopsData.busRouteId},directionId=${busRouteBusStopsData.bothDirectionsBusStops.get(0).get(1).id},busStopId=${busStopsPair.get(0).id})}" th:text="${busStopsPair.get(0).name}" class="bus-stop-link" th:classappend="${busStopsPair.get(0)==busRouteBusStopsData.bothDirectionsBusStops.get(busRouteBusStopsData.bothDirectionsBusStops.size()-1).get(0)} ? unreachable-bus-stop"></a>
+                    <a th:href="@{/bus-route-bus-stops/timetable(busRouteId=${busRouteBusStopsData.busRouteId},directionId=${busRouteBusStopsData.bothDirectionsBusStops.get(0).get(1).id},busStopId=${busStopsPair.get(0).id})}" th:text="'&#9658' +${busStopsPair.get(0).name}" class="bus-stop-link" th:classappend="${busStopsPair.get(0)==busRouteBusStopsData.bothDirectionsBusStops.get(busRouteBusStopsData.bothDirectionsBusStops.size()-1).get(0)} ? unreachable-bus-stop"></a>
                 </td>
                 <td class="bus-stop-data-cell right-table-column">
-                    <a th:href="@{/bus-route-bus-stops/timetable(busRouteId=${busRouteBusStopsData.busRouteId},directionId=${busRouteBusStopsData.bothDirectionsBusStops.get(0).get(0).id},busStopId=${busStopsPair.get(1).id})}" th:text="${busStopsPair.get(1).name}" class="bus-stop-link" th:classappend="${busStopsPair.get(1)==busRouteBusStopsData.bothDirectionsBusStops.get(busRouteBusStopsData.bothDirectionsBusStops.size()-1).get(1)} ? unreachable-bus-stop"></a>
+                    <a th:href="@{/bus-route-bus-stops/timetable(busRouteId=${busRouteBusStopsData.busRouteId},directionId=${busRouteBusStopsData.bothDirectionsBusStops.get(0).get(0).id},busStopId=${busStopsPair.get(1).id})}" th:text="'&#9658' +${busStopsPair.get(1).name}" class="bus-stop-link" th:classappend="${busStopsPair.get(1)==busRouteBusStopsData.bothDirectionsBusStops.get(busRouteBusStopsData.bothDirectionsBusStops.size()-1).get(1)} ? unreachable-bus-stop"></a>
                 </td>
             </tr>
         </table>

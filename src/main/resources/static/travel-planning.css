@@ -1,0 +1,40 @@
+.starting-bus-stop-label{
+    margin-right: 52px;
+}
+
+.end-bus-stop-label{
+    margin-left: 30px;
+    margin-right: 15px;
+}
+
+.starting-time-label{
+    margin-right: 95px;
+}
+
+.travel-date-label{
+    margin-right: 64px;
+    margin-left: 115px;
+}
+
+.change-number-label{
+    margin-right: 14px;
+}
+
+.planning-div{
+    padding: 5px;
+}
+
+.planning-fieldset{
+    margin: 20px auto;
+    width: 750px;
+}
+
+.bus-stop-select-div{
+    margin-bottom: 5px;
+}
+
+.date-time-div{
+    margin-bottom: 5px;
+}
+
+

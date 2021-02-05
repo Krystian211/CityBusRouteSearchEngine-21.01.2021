@@ -8,40 +8,80 @@
 </head>
 <body>
 <div th:replace="common-elements.html::menu"></div>
-<div>
+<div class="content-div">
     <fieldset class="planning-fieldset">
         <legend>Planowanie podróży</legend>
 
         <div class="planning-div">
             <form method="post" class="planning-form">
                 <div class="bus-stop-select-div">
-                    <label for="startingBusStop" class="form-label">Początkowy przystanek:</label>
-                    <select th:field="${travelPlanningInputData.startingBusStopId}" id="startingBusStop">
+                    <label for="startingBusStop" class="starting-bus-stop-label">Początkowy przystanek:</label>
+                    <select th:field="${travelPlanningInputData.startingBusStopId}" id="startingBusStop" class="starting-bus-stop-select">
                         <option th:each="startingBusStop:${busStopList}" th:value="${startingBusStop.id}"
                                 th:text="${startingBusStop.name}" class="bus-stop-form-field"></option>
                     </select>
 
-                    <label for="endBusStop" class="form-label">Końcowy przystanek:</label>
-                    <select th:field="${travelPlanningInputData.endBusStopId}" id="endBusStop">
-                        <option th:each="endBusStop:${busStopList}" th:value="${endBusStop.id}" th:text="${endBusStop.name}"
+                    <label for="endBusStop" class="end-bus-stop-label">Końcowy przystanek:</label>
+                    <select th:field="${travelPlanningInputData.endBusStopId}" id="endBusStop" class="end-bus-stop-select">
+                        <option th:each="endBusStop:${busStopList}" th:value="${endBusStop.id}"
+                                th:text="${endBusStop.name}"
                                 class="street-form-field"></option>
                     </select>
                 </div>
-                <div class="data-time-div">
-                    <label for="startingTime" class="form-label">Początek podóży:</label>
-                    <input type="time" id="startingTime" th:field="${travelPlanningInputData.travelStartingTime}">
-                    <label for="startingDate" class="form-label">Data podróży:</label>
-                    <input type="date" id="startingDate" th:field="${travelPlanningInputData.travelDate}">
+                <div class="date-time-div">
+                    <label for="startingTime" class="starting-time-label">Początek podóży:</label>
+                    <input type="time" id="startingTime" th:field="${travelPlanningInputData.usersStartingTime}" class="starting-time-input">
+                    <label for="startingDate" class="travel-date-label">Data podróży:</label>
+                    <input type="date" id="startingDate" th:field="${travelPlanningInputData.travelDate}" class="travel-date-input">
                 </div>
                 <div class="change-number-div">
-                    <label for="change-number" class="form-label">Ilość przesiadek:</label>
-                    <select th:field="${travelPlanningInputData.changeNumber}" id="change-number">
+                    <label for="change-number" class="change-number-label">Maksymalna ilość przesiadek:</label>
+                    <select th:field="${travelPlanningInputData.changeNumber}" id="change-number" class="change-number-select">
                         <option th:each="changeNumber:${#numbers.sequence(0,1)}" th:value="${changeNumber}"
                                 th:text="${changeNumber}" class="change-number-field"></option>
                     </select>
                 </div>
                 <div class="submit-button-div">
-                    <input type="submit" value="Szukaj">
+                    <input type="submit" value="Szukaj" class="common-submit-button">
+                </div>
+                <div th:if="${travelOptionOutputDataList!=null}" class="travel-options-div">
+                    <div th:each="travelOption: ${travelOptionOutputDataList}" class="single-travel-option">
+                        <table class="bus-route-trip-table">
+                            <tr>
+                                <td>
+                                    <p>Linia</p>
+                                </td>
+                                <td>
+                                    <p>Przystanek</p>
+                                </td>
+                                <td>
+                                    <p>Przyjazd/Odjazd</p>
+                                </td>
+                            </tr>
+                            <th:block th:each="busRouteTrip: ${travelOption.busRouteTripList}" class="bus-route-trip-div">
+                                <tr>
+                                    <td rowspan="2">
+                                        <p th:text="${busRouteTrip.busRoute.number}"></p>
+                                    </td>
+                                    <td>
+                                        <p th:text="${busRouteTrip.startingBusStop.name}"></p>
+                                    </td>
+                                    <td>
+                                        <p th:text="${busRouteTrip.actualStartingTime}"></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p th:text="${busRouteTrip.endBusStop.name}"></p>
+                                    </td>
+                                    <td>
+                                        <p th:text="${busRouteTrip.actualEndTime}"></p>
+                                    </td>
+                                </tr>
+                            </th:block>
+                        </table>
+                        <p th:text="'Szacowany czas podróży: '+${travelOption.estimatedTravelTime/60}+'h '+${travelOption.estimatedTravelTime%60}+'min'"></p>
+                    </div>
                 </div>
             </form>
         </div>

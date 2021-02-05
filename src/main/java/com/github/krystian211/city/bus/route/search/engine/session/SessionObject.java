@@ -8,6 +8,7 @@ import org.springframework.web.context.annotation.SessionScope;
 @SessionScope
 public class SessionObject {
     private TravelPlanningInputData travelPlanningInputData;
+    private boolean travelPlanningInputDataWaitingForProcessing=false;
 
     public TravelPlanningInputData getTravelPlanningInputData() {
         return travelPlanningInputData;
@@ -17,11 +18,26 @@ public class SessionObject {
         this.travelPlanningInputData = travelPlanningInputData;
     }
 
-    public TravelPlanningInputData pollTravelPlanningData(){
+    public boolean isTravelPlanningInputDataAvailable(){
+        return this.travelPlanningInputData != null;
+    }
+
+    public boolean isTravelPlanningInputDataWaitingForProcessing() {
+        return this.travelPlanningInputDataWaitingForProcessing;
+    }
+
+    public void setTravelPlanningInputDataWaitingForProcessing(boolean travelPlanningInputDataWaitingForProcessing) {
+        this.travelPlanningInputDataWaitingForProcessing = travelPlanningInputDataWaitingForProcessing;
+    }
+
+    public TravelPlanningInputData pollTravelPlanningInputData(){
+        if (this.getTravelPlanningInputData()==null){
+            return null;
+        }
         TravelPlanningInputData copyOfTravelPlanningInputData =new TravelPlanningInputData();
         copyOfTravelPlanningInputData.setStartingBusStopId(this.travelPlanningInputData.getStartingBusStopId());
         copyOfTravelPlanningInputData.setEndBusStopId(this.travelPlanningInputData.getEndBusStopId());
-        copyOfTravelPlanningInputData.setTravelStartingTime(this.travelPlanningInputData.getTravelStartingTime());
+        copyOfTravelPlanningInputData.setUsersStartingTime(this.travelPlanningInputData.getUsersStartingTime());
         copyOfTravelPlanningInputData.setTravelDate(this.travelPlanningInputData.getTravelDate());
         copyOfTravelPlanningInputData.setChangeNumber(this.travelPlanningInputData.getChangeNumber());
         this.travelPlanningInputData =null;

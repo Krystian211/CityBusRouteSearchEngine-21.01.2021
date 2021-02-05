@@ -6,22 +6,23 @@ import com.github.krystian211.city.bus.route.search.engine.dao.ITimetableDAO;
 import com.github.krystian211.city.bus.route.search.engine.dao.ITravelTimeDAO;
 import com.github.krystian211.city.bus.route.search.engine.model.BusRoute;
 import com.github.krystian211.city.bus.route.search.engine.model.BusStop;
+import com.github.krystian211.city.bus.route.search.engine.model.view.BusRouteTrip;
 import com.github.krystian211.city.bus.route.search.engine.model.view.TravelPlanningInputData;
-import com.github.krystian211.city.bus.route.search.engine.model.view.TravelPlanningOutputData;
+import com.github.krystian211.city.bus.route.search.engine.model.view.TravelOptionOutputData;
 import com.github.krystian211.city.bus.route.search.engine.services.ITravelPlanner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class TravelPlannerImpl implements ITravelPlanner {
+
+    private static final int TRAVEL_TIME_MULTIPLIER=2;
 
     @Autowired
     IBusRouteDAO busRouteDAO;
@@ -36,30 +37,95 @@ public class TravelPlannerImpl implements ITravelPlanner {
     ITimetableDAO timetableDAO;
 
     @Override
-    public List<TravelPlanningOutputData> planTravel(TravelPlanningInputData travelPlanningInputData) {
-
-        System.out.println();
-        System.out.println(findClosestDepartureTime(LocalDate.of(2021,1,31),LocalTime.of(11,20),1,4,18));
-
-        return null;
+    public List<TravelOptionOutputData> planTravel(TravelPlanningInputData travelPlanningInputData) {
+        if (travelPlanningInputData == null) {
+            return null;
+        } else {
+            List<TravelOptionOutputData> travelOptionOutputDataList = new ArrayList<>();
+            for (TravelOptionWithoutTime travelOptionWithoutTime : getTravelOptionWithoutTimeList(travelPlanningInputData)) {
+                travelOptionOutputDataList.add(travelOptionWithoutTimeToTravelOptionOutputData(travelOptionWithoutTime, travelPlanningInputData));
+            }
+            return travelOptionOutputDataList;
+        }
     }
 
-    private List<TravelOption> findTravelOptionsWithoutChanges(TravelPlanningInputData travelPlanningInputData) {
-        List<TravelOption> travelOptionList = new ArrayList<>();
+    private List<TravelOptionWithoutTime> getTravelOptionWithoutTimeList(TravelPlanningInputData travelPlanningInputData) {
+        List<TravelOptionWithoutTime> travelOptionWithoutTimeList = new ArrayList<>();
+        List<TravelOptionWithoutTime> tmpTravelOptionWithoutTimeList;
+        if ((tmpTravelOptionWithoutTimeList = findTravelOptionsWithoutChanges(travelPlanningInputData)).size() != 0) {
+            travelOptionWithoutTimeList.addAll(tmpTravelOptionWithoutTimeList);
+        } else if ((travelPlanningInputData.getChangeNumber() >= 1) && ((tmpTravelOptionWithoutTimeList = findTravelOptionsWithOneChange(travelPlanningInputData)).size() != 0)) {
+            travelOptionWithoutTimeList.addAll(tmpTravelOptionWithoutTimeList);
+        }
+        return travelOptionWithoutTimeList;
+    }
+
+    private TravelOptionOutputData travelOptionWithoutTimeToTravelOptionOutputData(TravelOptionWithoutTime travelOptionWithoutTime, TravelPlanningInputData travelPlanningInputData) {
+        List<BusRouteTrip> busRouteTripList = new ArrayList<>();
+        LocalTime usersStartingTime = travelPlanningInputData.getUsersStartingTime();
+        Iterator<BusRouteTripWithoutTime> iterator = travelOptionWithoutTime.getBusRouteTripWithoutTimeList().iterator();
+        while (iterator.hasNext()) {
+            busRouteTripList.add(busRouteTripWithoutTimeToBusRouteTrip(iterator.next(), usersStartingTime, travelPlanningInputData.getTravelDate()));
+            if (iterator.hasNext()) {
+                usersStartingTime = busRouteTripList.get(busRouteTripList.size() - 1).getActualEndTime();
+            }
+        }
+        TravelOptionOutputData travelOptionOutputData = new TravelOptionOutputData();
+        travelOptionOutputData.setBusRouteTripList(busRouteTripList);
+        travelOptionOutputData.setEstimatedTravelTime(Duration.between(busRouteTripList.get(0).getActualStartingTime(),
+                busRouteTripList.get(busRouteTripList.size() - 1).getActualEndTime()).toMinutes());
+        return travelOptionOutputData;
+    }
+
+    private BusRouteTrip busRouteTripWithoutTimeToBusRouteTrip(BusRouteTripWithoutTime busRouteTripWithoutTime, LocalTime usersStartingTime, LocalDate travelDate) {
+        int travelTimeInMinutes = 0;
+        BusRouteTrip busRouteTrip = new BusRouteTrip();
+        busRouteTrip.setBusRoute(busRouteTripWithoutTime.getBusRoute());
+        busRouteTrip.setActualStartingTime(findClosestDepartureTime(travelDate,
+                usersStartingTime,
+                busRouteTripWithoutTime.getBusRoute().getId(),
+                busRouteTripWithoutTime.getPassedBusStopIdList().get(0),
+                getDirectionId(busRouteTripWithoutTime.getBusRoute(), busRouteTripWithoutTime.getPassedBusStopIdList().get(0), busRouteTripWithoutTime.getPassedBusStopIdList().get(busRouteTripWithoutTime.getPassedBusStopIdList().size()-1))));
+        for (int i = 0; i < busRouteTripWithoutTime.getPassedBusStopIdList().size() - 1; i++) {
+            int previousBusStopId = busRouteTripWithoutTime.getPassedBusStopIdList().get(i);
+            int currentBusStopId = busRouteTripWithoutTime.getPassedBusStopIdList().get(i + 1);
+            travelTimeInMinutes += this.travelTimeDAO.getTravelTimeByBusStopIds(previousBusStopId, currentBusStopId).getTravelTime()*TRAVEL_TIME_MULTIPLIER;
+        }
+        busRouteTrip.setActualEndTime(busRouteTrip.getActualStartingTime().plusMinutes(travelTimeInMinutes));
+        busRouteTrip.setStartingBusStop(this.busStopDAO.getBusStopById(busRouteTripWithoutTime.passedBusStopIdList.get(0)));
+        busRouteTrip.setEndBusStop(this.busStopDAO.getBusStopById(busRouteTripWithoutTime.getPassedBusStopIdList().get(busRouteTripWithoutTime.passedBusStopIdList.size()-1)));
+        return busRouteTrip;
+    }
+
+    private int getDirectionId(BusRoute busRoute, int firstBusStopId, int secondBusStopId) {
+        for (Map.Entry<Integer, BusStop> busStopNumberBusStopEntry : busRoute.getPassedBusStops().entrySet()) {
+            if (busStopNumberBusStopEntry.getValue().getId() == firstBusStopId) {
+                System.out.println(busRoute.getPassedBusStops().get(busRoute.getPassedBusStops().size() - 1).getId());
+                return busRoute.getPassedBusStops().get(busRoute.getPassedBusStops().size() - 1).getId();
+            } else if (busStopNumberBusStopEntry.getValue().getId() == secondBusStopId) {
+                System.out.println(busStopNumberBusStopEntry.getValue().getId() == secondBusStopId);
+                return busRoute.getPassedBusStops().get(0).getId();
+            }
+        }
+        throw new IllegalArgumentException("Incorrect bus stops!");
+    }
+
+    private List<TravelOptionWithoutTime> findTravelOptionsWithoutChanges(TravelPlanningInputData travelPlanningInputData) {
+        List<TravelOptionWithoutTime> travelOptionWithoutTimeList = new ArrayList<>();
         for (BusRoute busRoute : this.busRouteDAO.getBusRoutesByBusStop(travelPlanningInputData.getStartingBusStopId())) {
             for (Map.Entry<Integer, BusStop> busStopNumberBusStopEntry : busRoute.getPassedBusStops().entrySet()) {
                 if (busStopNumberBusStopEntry.getValue().getId() == travelPlanningInputData.getEndBusStopId()) {
-                    TravelOption travelOption = new TravelOption();
-                    travelOption.getBusRouteTripList().add(new BusRouteTrip(busRoute, travelPlanningInputData.getStartingBusStopId(), travelPlanningInputData.getEndBusStopId()));
-                    travelOptionList.add(travelOption);
+                    TravelOptionWithoutTime travelOptionWithoutTime = new TravelOptionWithoutTime();
+                    travelOptionWithoutTime.getBusRouteTripWithoutTimeList().add(new BusRouteTripWithoutTime(busRoute, travelPlanningInputData.getStartingBusStopId(), travelPlanningInputData.getEndBusStopId()));
+                    travelOptionWithoutTimeList.add(travelOptionWithoutTime);
                 }
             }
         }
-        return travelOptionList;
+        return travelOptionWithoutTimeList;
     }
 
-    private List<TravelOption> findTravelOptionsWithOneChange(TravelPlanningInputData travelPlanningInputData) {
-        List<TravelOption> travelOptionList = new ArrayList<>();
+    private List<TravelOptionWithoutTime> findTravelOptionsWithOneChange(TravelPlanningInputData travelPlanningInputData) {
+        List<TravelOptionWithoutTime> travelOptionWithoutTimeList = new ArrayList<>();
         BusStop commonBusStop;
         List<BusRoute> startingBusRouteList = this.busRouteDAO.getBusRoutesByBusStop(travelPlanningInputData.getStartingBusStopId());
         List<BusRoute> endBusRouteList = this.busRouteDAO.getBusRoutesByBusStop(travelPlanningInputData.getEndBusStopId());
@@ -67,30 +133,30 @@ public class TravelPlannerImpl implements ITravelPlanner {
         for (BusRoute startingBusRoute : startingBusRouteList) {
             for (BusRoute endBusRoute : endBusRouteList) {
                 if ((commonBusStop = findCommonBusRoutesPoint(startingBusRoute, endBusRoute)) != null) {
-                    TravelOption travelOption = new TravelOption();
-                    BusRouteTrip firstTrip = new BusRouteTrip(startingBusRoute, travelPlanningInputData.getStartingBusStopId(), commonBusStop.getId());
-                    BusRouteTrip secondTrip = new BusRouteTrip(endBusRoute, commonBusStop.getId(), travelPlanningInputData.getEndBusStopId());
-                    travelOption.getBusRouteTripList().add(firstTrip);
-                    travelOption.getBusRouteTripList().add(secondTrip);
-                    travelOptionList.add(travelOption);
+                    TravelOptionWithoutTime travelOptionWithoutTime = new TravelOptionWithoutTime();
+                    BusRouteTripWithoutTime firstTrip = new BusRouteTripWithoutTime(startingBusRoute, travelPlanningInputData.getStartingBusStopId(), commonBusStop.getId());
+                    BusRouteTripWithoutTime secondTrip = new BusRouteTripWithoutTime(endBusRoute, commonBusStop.getId(), travelPlanningInputData.getEndBusStopId());
+                    travelOptionWithoutTime.getBusRouteTripWithoutTimeList().add(firstTrip);
+                    travelOptionWithoutTime.getBusRouteTripWithoutTimeList().add(secondTrip);
+                    travelOptionWithoutTimeList.add(travelOptionWithoutTime);
                 }
             }
         }
-        return travelOptionList;
+        return travelOptionWithoutTimeList;
     }
 
-    private LocalTime findClosestDepartureTime(LocalDate travelDate, LocalTime travelStartingTime, int busRouteId, int busStopId, int directionId) {
+    private LocalTime findClosestDepartureTime(LocalDate travelDate, LocalTime usersStartingTime, int busRouteId, int busStopId, int directionId) {
         List<LocalTime> departureTimeList;
         if (travelDate.getDayOfWeek().equals(DayOfWeek.SUNDAY)) {
-            departureTimeList=new ArrayList<>(this.timetableDAO.getTimetable(busStopId, busRouteId, directionId).getSundayAndHolidayDepartureTimes());
-        } else if(travelDate.getDayOfWeek().equals(DayOfWeek.SATURDAY)){
-            departureTimeList=new ArrayList<>(this.timetableDAO.getTimetable(busStopId, busRouteId, directionId).getSaturdayDepartureTimes());
+            departureTimeList = new ArrayList<>(this.timetableDAO.getTimetable(busStopId, busRouteId, directionId).getSundayAndHolidayDepartureTimes());
+        } else if (travelDate.getDayOfWeek().equals(DayOfWeek.SATURDAY)) {
+            departureTimeList = new ArrayList<>(this.timetableDAO.getTimetable(busStopId, busRouteId, directionId).getSaturdayDepartureTimes());
         } else {
-            departureTimeList=new ArrayList<>(this.timetableDAO.getTimetable(busStopId, busRouteId, directionId).getWeekdayDepartureTimes());
+            departureTimeList = new ArrayList<>(this.timetableDAO.getTimetable(busStopId, busRouteId, directionId).getWeekdayDepartureTimes());
         }
         Collections.sort(departureTimeList);
         for (LocalTime departureTime : departureTimeList) {
-            if (departureTime.isAfter(travelStartingTime)) {
+            if (departureTime.isAfter(usersStartingTime) || usersStartingTime.equals(departureTime)) {
                 return departureTime;
             }
         }
@@ -108,28 +174,28 @@ public class TravelPlannerImpl implements ITravelPlanner {
         return null;
     }
 
-    private class TravelOption {
+    private class TravelOptionWithoutTime {
 
-        private List<BusRouteTrip> busRouteTripList = new ArrayList<>();
+        private List<BusRouteTripWithoutTime> busRouteTripWithoutTimeList = new ArrayList<>();
 
-        public TravelOption() {
+        public TravelOptionWithoutTime() {
 
         }
 
-        public List<BusRouteTrip> getBusRouteTripList() {
-            return this.busRouteTripList;
+        public List<BusRouteTripWithoutTime> getBusRouteTripWithoutTimeList() {
+            return this.busRouteTripWithoutTimeList;
         }
 
-        public void setBusRouteTripList(List<BusRouteTrip> busRouteTripList) {
-            this.busRouteTripList = busRouteTripList;
+        public void setBusRouteTripWithoutTimeList(List<BusRouteTripWithoutTime> busRouteTripWithoutTimeList) {
+            this.busRouteTripWithoutTimeList = busRouteTripWithoutTimeList;
         }
     }
 
-    private class BusRouteTrip {
+    private class BusRouteTripWithoutTime {
         private BusRoute busRoute;
         private List<Integer> passedBusStopIdList = new ArrayList<>();
 
-        public BusRouteTrip(BusRoute busRoute, int startingBusStopId, int endBusStopId) {
+        public BusRouteTripWithoutTime(BusRoute busRoute, int startingBusStopId, int endBusStopId) {
             this.busRoute = busRoute;
             fillInPassedBusStopList(startingBusStopId, endBusStopId);
         }

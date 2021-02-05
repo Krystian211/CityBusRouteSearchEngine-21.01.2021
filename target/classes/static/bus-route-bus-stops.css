@@ -9,23 +9,55 @@
 }
 
 .right-table-column{
-    width: 200px;
+    width: 220px;
 }
 
 .unreachable-bus-stop{
     pointer-events: none;
-    color: gray;
+    color: gray !important;
 }
 
 .bus-stop-link{
+    color: #082759;
     text-decoration: none;
+    transition: color 0.5s;
+    font-size:105%;
+    font-weight: bold;
+}
+
+.bus-stop-link:hover{
+    color: #bd1c1c
+
 }
 
 .bus-stop-header{
     font-weight: bold;
+    font-size:120%;
+    text-decoration: underline;
+
 }
 
 .bus-route-header{
     text-align: center;
+    font-weight: bold;
+
+}
+
+.bus-route-header-p{
+        text-align: center;
+        width: 100px;
+        height: 30px;
+        margin: 0 auto;
+        background-color:#219e43;
+        color: white;
+        font-size:120%;
+        transition: background-color 0.5s;
+        border: solid #082759 2px;
+        border-radius: 5px;
+        padding-top: 7px;
+}
+
+.direction-header{
+    font-size:110%;
     font-weight: bold;
 }

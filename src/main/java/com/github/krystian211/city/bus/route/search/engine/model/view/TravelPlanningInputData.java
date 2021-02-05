@@ -8,15 +8,15 @@ import java.time.LocalTime;
 public class TravelPlanningInputData {
     private int startingBusStopId;
     private int endBusStopId;
-    private LocalTime travelStartingTime;
+    private LocalTime usersStartingTime;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate travelDate;
     private int changeNumber;
 
-    public TravelPlanningInputData(int startingBusStopId, int endBusStopId, LocalTime travelStartingTime, LocalDate travelDate, int changeNumber) {
+    public TravelPlanningInputData(int startingBusStopId, int endBusStopId, LocalTime usersStartingTime, LocalDate travelDate, int changeNumber) {
         this.startingBusStopId = startingBusStopId;
         this.endBusStopId = endBusStopId;
-        this.travelStartingTime = travelStartingTime;
+        this.usersStartingTime = usersStartingTime;
         this.travelDate = travelDate;
         this.changeNumber = changeNumber;
     }
@@ -40,12 +40,12 @@ public class TravelPlanningInputData {
         this.endBusStopId = endBusStopId;
     }
 
-    public LocalTime getTravelStartingTime() {
-        return this.travelStartingTime;
+    public LocalTime getUsersStartingTime() {
+        return this.usersStartingTime;
     }
 
-    public void setTravelStartingTime(LocalTime travelStartingTime) {
-        this.travelStartingTime = travelStartingTime;
+    public void setUsersStartingTime(LocalTime usersStartingTime) {
+        this.usersStartingTime = usersStartingTime;
     }
 
     public LocalDate getTravelDate() {
@@ -65,7 +65,7 @@ public class TravelPlanningInputData {
     }
 
     public static TravelPlanningInputData initialize(TravelPlanningInputData travelPlanningInputData) {
-        travelPlanningInputData.setTravelStartingTime(LocalTime.now());
+        travelPlanningInputData.setUsersStartingTime(LocalTime.now());
         travelPlanningInputData.setTravelDate(LocalDate.now());
         travelPlanningInputData.setChangeNumber(0);
         return travelPlanningInputData;

@@ -37,15 +37,6 @@ public class CommonController {
 
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String showMainPage(Model model) {
-        //TODO remmove
-
-        TravelPlanningInputData travelPlanningInputData=new TravelPlanningInputData();
-        travelPlanningInputData.setChangeNumber(0);
-        travelPlanningInputData.setEndBusStopId(8);
-        travelPlanningInputData.setStartingBusStopId(1);
-        this.travelPlanner.planTravel(travelPlanningInputData);
-
-
         model.addAttribute("busRouteList", this.busRouteService.getAllBusRoutes());
         return "main-page";
     }
@@ -88,15 +79,24 @@ public class CommonController {
 
     @RequestMapping(value = "/travel-planning", method = RequestMethod.GET)
     public String travelPlanning(Model model) {
+        model.addAttribute("travelOptionOutputDataList", this.travelPlanner.planTravel(this.sessionObject.getTravelPlanningInputData()));
         model.addAttribute("busStopList",this.busStopService.getAllBusStops());
-        model.addAttribute("travelPlanningData", TravelPlanningInputData.initialize(new TravelPlanningInputData()));
+        if (this.sessionObject.isTravelPlanningInputDataAvailable()) {
+            model.addAttribute("travelPlanningInputData", this.sessionObject.pollTravelPlanningInputData());
+        }else {
+            model.addAttribute("travelPlanningInputData", TravelPlanningInputData.initialize(new TravelPlanningInputData()));
+        }
+
         return "travel-planning";
     }
 
     @RequestMapping(value = "/travel-planning", method = RequestMethod.POST)
     public String travelPlanning(@ModelAttribute TravelPlanningInputData travelPlanningInputData) {
         this.sessionObject.setTravelPlanningInputData(travelPlanningInputData);
-        return "travel-planning";
+        this.sessionObject.setTravelPlanningInputDataWaitingForProcessing(true);
+        return "redirect:/travel-planning";
     }
+
+
 
 }
